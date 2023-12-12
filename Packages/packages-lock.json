@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "com.foxthorne.utilities": {
+      "version": "file:C:/Users/jack/Desktop/Development/Unity/Packages/Foxthorne Utilities",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.unity.2d.animation": {
       "version": "9.0.4",
       "depth": 1,
