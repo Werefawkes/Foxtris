@@ -1,5 +1,13 @@
 {
   "dependencies": {
+    "com.foxthorne.foxscreens": {
+      "version": "file:C:/Users/jack/Desktop/Development/Unity/Packages/Fox Screens",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.foxthorne.utilities": "0.0.1"
+      }
+    },
     "com.foxthorne.utilities": {
       "version": "file:C:/Users/jack/Desktop/Development/Unity/Packages/Foxthorne Utilities",
       "depth": 0,
@@ -163,6 +171,15 @@
       "source": "registry",
       "dependencies": {
         "com.unity.test-framework": "1.1.9"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.inputsystem": {
+      "version": "1.7.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.modules.uielements": "1.0.0"
       },
       "url": "https://packages.unity.com"
     },
