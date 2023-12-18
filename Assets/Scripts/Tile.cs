@@ -8,20 +8,22 @@ public class Tile : MonoBehaviour
 	public Sprite sprite;
 
 	[Header("Empty")]
-	public bool IsEmpty;
 	public Color emptyColor = Color.black;
 	public Sprite emptySprite;
+	public bool IsEmpty { get; private set; }
 
 	[Header("References")]
 	public SpriteRenderer spriteRenderer;
 
 	private void Start()
 	{
-		TileUpdate();
+		SetEmpty(IsEmpty);
 	}
 
-	private void TileUpdate()
+	public void SetEmpty(bool isEmpty = true)
 	{
+		IsEmpty = isEmpty;
+
 		if (IsEmpty)
 		{
 			if (emptySprite != null)
