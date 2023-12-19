@@ -5,8 +5,12 @@ using UnityEngine.InputSystem;
 
 public class Board : MonoBehaviour
 {
+	[Header("Board")]
 	public Vector2Int dimensions;
+
+	[Header("Game")]
 	public float ticksPerSecond = 1;
+	public PieceSetSO pieceSet;
 	float nextTickTime;
 
 	Tile currentTile;
@@ -84,19 +88,24 @@ public class Board : MonoBehaviour
 
 	void Tick()
 	{
-		CheckLines();
-
 		// Fall
 		if (!TryMoveDown())
 		{
+			currentTile = null;
+			CheckLines();
 			SpawnPiece();
 		}
 	}
 
 	public void SpawnPiece()
 	{
-		// TODO: Check that the piece can be spawned
 		Vector2Int pos = new(dimensions.x / 2, dimensions.y - 1);
+		if (!tiles[pos.x, pos.y].IsEmpty)
+		{
+			// Game over
+			return;
+		}
+
 		currentTile = tiles[pos.x, pos.y];
 		currentTile.SetEmpty(false);
 	}
@@ -130,7 +139,7 @@ public class Board : MonoBehaviour
 			bool full = true;
 			for (int x = 0; x < dimensions.x; x++)
 			{
-				if (tiles[x, y].IsEmpty)
+				if (tiles[x, y].IsEmpty || tiles[x, y] == currentTile)
 				{
 					full = false;
 					break;
@@ -144,9 +153,16 @@ public class Board : MonoBehaviour
 		}
 	}
 
+	public PieceSO GetNextPeice()
+	{
+		return pieceSet.pieces[0];
+	}
+
 	#region Movement
 	public bool TryMove(Vector2Int direction)
 	{
+		if (currentTile == null) return false;
+
 		Vector2Int targetIndex = currentTile.index;
 		targetIndex += direction;
 
