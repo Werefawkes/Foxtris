@@ -18,34 +18,44 @@ public class Tile : MonoBehaviour
 
 	private void Start()
 	{
-		SetEmpty(IsEmpty);
-	}
-
-	public void SetEmpty(bool isEmpty = true)
-	{
-		IsEmpty = isEmpty;
-
 		if (IsEmpty)
 		{
-			if (emptySprite != null)
-			{
-				spriteRenderer.sprite = emptySprite;
-			}
-			spriteRenderer.color = emptyColor;
+			Clear();
 		}
-		else
+	}
+
+	public void Clear()
+	{
+		IsEmpty = true;
+
+		if (emptySprite != null)
 		{
-			if (sprite != null)
-			{
-				spriteRenderer.sprite = sprite;
-			}
-			spriteRenderer.color = color;
+			spriteRenderer.sprite = emptySprite;
 		}
+		spriteRenderer.color = emptyColor;
+	}
+
+	public void Fill(Color color)
+	{
+		IsEmpty = false;
+
+		if (sprite != null)
+		{
+			spriteRenderer.sprite = sprite;
+		}
+		spriteRenderer.color = color;
 	}
 
 	public void CopyFrom(Tile tile)
 	{
-		SetEmpty(tile.IsEmpty);
-		color = tile.color;
+		if (tile.IsEmpty)
+		{
+			Clear();
+		}
+		else
+		{
+			color = tile.color;
+			Fill(color);
+		}
 	}
 }

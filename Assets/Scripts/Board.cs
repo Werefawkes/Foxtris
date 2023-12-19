@@ -13,7 +13,7 @@ public class Board : MonoBehaviour
 	public PieceSetSO pieceSet;
 	float nextTickTime;
 
-	Tile currentTile;
+	List<Tile> currentTiles;
 
 	Tile[,] tiles;
 
@@ -43,7 +43,7 @@ public class Board : MonoBehaviour
 
 				Tile tile = Instantiate(tilePrefab, transform).GetComponent<Tile>();
 				tile.transform.localPosition = pos;
-				tile.SetEmpty(true);
+				tile.Clear();
 				tile.name = $"Tile[{x},{y}]";
 				tile.index = new(x, y);
 				tiles[x, y] = tile;
@@ -91,7 +91,7 @@ public class Board : MonoBehaviour
 		// Fall
 		if (!TryMoveDown())
 		{
-			currentTile = null;
+			currentTiles = new();
 			CheckLines();
 			SpawnPiece();
 		}
@@ -99,15 +99,28 @@ public class Board : MonoBehaviour
 
 	public void SpawnPiece()
 	{
-		Vector2Int pos = new(dimensions.x / 2, dimensions.y - 1);
-		if (!tiles[pos.x, pos.y].IsEmpty)
-		{
-			// Game over
-			return;
-		}
+		PieceSO piece = GetNextPeice();
 
-		currentTile = tiles[pos.x, pos.y];
-		currentTile.SetEmpty(false);
+		Vector2Int center = new(dimensions.x / 2, dimensions.y - 1);
+
+		currentTiles = new();
+		foreach (Vector2Int p in piece.tiles)
+		{
+			Vector2Int tPos = center + p;
+			Tile tile = tiles[tPos.x, tPos.y];
+			if (tile.IsEmpty)
+			{
+				currentTiles.Add(tile);
+				tile.Fill(Color.red);
+			}
+			else
+			{
+				// Game over
+				Debug.Log("Game over");
+				currentTiles = new();
+				return;
+			}
+		}
 	}
 
 	public void ClearLine(int rowIndex)
@@ -121,7 +134,7 @@ public class Board : MonoBehaviour
 			}
 			else
 			{
-				tiles[x, rowIndex].SetEmpty(true);
+				tiles[x, rowIndex].Clear();
 			}
 		}
 
@@ -139,7 +152,7 @@ public class Board : MonoBehaviour
 			bool full = true;
 			for (int x = 0; x < dimensions.x; x++)
 			{
-				if (tiles[x, y].IsEmpty || tiles[x, y] == currentTile)
+				if (tiles[x, y].IsEmpty || currentTiles.Contains(tiles[x, y]))
 				{
 					full = false;
 					break;
@@ -161,31 +174,43 @@ public class Board : MonoBehaviour
 	#region Movement
 	public bool TryMove(Vector2Int direction)
 	{
-		if (currentTile == null) return false;
+		if (currentTiles == null || currentTiles.Count == 0) return false;
 
-		Vector2Int targetIndex = currentTile.index;
-		targetIndex += direction;
-
-		// Fail if the target would be off the board
-		if (targetIndex.x < 0 || targetIndex.x >= dimensions.x || targetIndex.y < 0)
+		List<Tile> newTiles = new();
+		foreach (Tile tile in currentTiles)
 		{
-			return false;
+			Vector2Int targetIndex = tile.index;
+			targetIndex += direction;
+
+			// Fail if the target would be off the board
+			if (targetIndex.x < 0 || targetIndex.x >= dimensions.x || targetIndex.y < 0)
+			{
+				return false;
+			}
+
+			Tile target = tiles[targetIndex.x, targetIndex.y];
+
+			if (target.IsEmpty || currentTiles.Contains(target))
+			{
+				newTiles.Add(target);
+			}
+			else
+			{
+				return false;
+			}
 		}
 
-		Tile target = tiles[targetIndex.x, targetIndex.y];
+		for (int i = 0; i < newTiles.Count; i++)
+		{
+			newTiles[i].CopyFrom(currentTiles[i]);
+			if (!newTiles.Contains(currentTiles[i]))
+			{
+				currentTiles[i].Clear();
+			}
+		}
 
-		if (target.IsEmpty)
-		{
-			target.SetEmpty(false);
-			currentTile.SetEmpty(true);
-			currentTile = target;
-			return true;
-		}
-		else
-		{
-			// Lock piece in
-			return false;
-		}
+		currentTiles = newTiles;
+		return true;
 	}
 
 	public bool TryMoveDown()

@@ -5,6 +5,6 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New Piece", menuName = "Scriptable Objects/Piece")]
 public class PieceSO : ScriptableObject
 {
-	public Vector2[] tiles;
+	public Vector2Int[] tiles;
 	public int colorIndex = 0;
 }
