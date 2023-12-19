@@ -42,4 +42,10 @@ public class Tile : MonoBehaviour
 			spriteRenderer.color = color;
 		}
 	}
+
+	public void CopyFrom(Tile tile)
+	{
+		SetEmpty(tile.IsEmpty);
+		color = tile.color;
+	}
 }

@@ -84,13 +84,13 @@ public class Board : MonoBehaviour
 
 	void Tick()
 	{
+		CheckLines();
+
 		// Fall
 		if (!TryMoveDown())
 		{
 			SpawnPiece();
 		}
-
-
 	}
 
 	public void SpawnPiece()
@@ -99,6 +99,49 @@ public class Board : MonoBehaviour
 		Vector2Int pos = new(dimensions.x / 2, dimensions.y - 1);
 		currentTile = tiles[pos.x, pos.y];
 		currentTile.SetEmpty(false);
+	}
+
+	public void ClearLine(int rowIndex)
+	{
+		for (int x = 0; x < dimensions.x; x++)
+		{
+			// If there's a tile above
+			if (rowIndex + 1 < dimensions.y)
+			{
+				tiles[x, rowIndex].CopyFrom(tiles[x, rowIndex + 1]);
+			}
+			else
+			{
+				tiles[x, rowIndex].SetEmpty(true);
+			}
+		}
+
+		if (rowIndex + 1 < dimensions.y)
+		{
+			ClearLine(rowIndex + 1);
+		}
+	}
+
+	public void CheckLines()
+	{
+		// Check from the top down
+		for (int y = dimensions.y - 1; y >= 0; y--)
+		{
+			bool full = true;
+			for (int x = 0; x < dimensions.x; x++)
+			{
+				if (tiles[x, y].IsEmpty)
+				{
+					full = false;
+					break;
+				}
+			}
+
+			if (full)
+			{
+				ClearLine(y);
+			}
+		}
 	}
 
 	#region Movement
@@ -146,6 +189,7 @@ public class Board : MonoBehaviour
 
 	#endregion
 
+	#region Input Methods
 	void OnMove(InputValue value)
 	{
 		float v = value.Get<float>();
@@ -196,6 +240,7 @@ public class Board : MonoBehaviour
 		// Make next tick happen instantly
 		nextTickTime = Time.time;
 	}
+	#endregion
 
 	private void OnDrawGizmos()
 	{
