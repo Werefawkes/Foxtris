@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
+	public Vector2Int index;
 	public Color color = Color.red;
 	public Sprite sprite;
 

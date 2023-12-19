@@ -225,6 +225,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1696188844}
   - component: {fileID: 1696188843}
+  - component: {fileID: 1696188845}
   m_Layer: 0
   m_Name: Board
   m_TagString: Untagged
@@ -245,6 +246,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dimensions: {x: 10, y: 20}
+  ticksPerSecond: 1
+  moveRepeatTime: 0.1
+  moveRepeatDelay: 0.3
   tilePrefab: {fileID: 6784293485470640221, guid: 68afe77b7ed695a478ce8e0f6e7c5170, type: 3}
 --- !u!4 &1696188844
 Transform:
@@ -261,6 +265,36 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1696188845
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1696188842}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Actions: {fileID: -944628639613478452, guid: 58951501cb6c36d4b90de1cfe9c304ec, type: 3}
+  m_NotificationBehavior: 0
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents: []
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: 
+  m_DefaultActionMap: Player
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
 --- !u!1001 &643744017152682790
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -269,6 +303,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 873769223340100794, guid: 16d9f07ab09f17b4b9ac72dc90a6efc4, type: 3}
+      propertyPath: LockCursor
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6354010558068580437, guid: 16d9f07ab09f17b4b9ac72dc90a6efc4, type: 3}
       propertyPath: m_text
       value: Paused

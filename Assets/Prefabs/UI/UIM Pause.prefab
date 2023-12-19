@@ -210,6 +210,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Persistent: 0
+  LockCursor: 1
   allScreens:
   - {fileID: 8473406199884738291}
   openScreens: []
