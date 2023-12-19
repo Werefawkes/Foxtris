@@ -17,7 +17,9 @@ public class Board : MonoBehaviour
 	public float moveRepeatTime = 0.1f;
 	[Tooltip("The time in seconds it takes to begin repeating the move when holding the button down.")]
 	public float moveRepeatDelay = 0.2f;
+	public float dropRepeatTime = 0.1f;
 	float nextMoveTime = -1;
+	float nextDropTime = -1;
 	float moveInput;
 
 	[Header("References")]
@@ -55,6 +57,7 @@ public class Board : MonoBehaviour
 			Tick();
 		}
 
+		// Input repeating
 		if (nextMoveTime > 0 && Time.time >= nextMoveTime)
 		{
 			if (moveInput < 0)
@@ -68,6 +71,15 @@ public class Board : MonoBehaviour
 
 			nextMoveTime = Time.time + moveRepeatTime;
 		}
+
+		// Soft drops
+		if (nextDropTime > 0 && Time.time >= nextDropTime)
+		{
+			TryMoveDown();
+			nextDropTime = Time.time + dropRepeatTime;
+			// Postpone next tick
+			nextTickTime = Time.time + (1 / ticksPerSecond);
+		}
 	}
 
 	void Tick()
@@ -77,6 +89,8 @@ public class Board : MonoBehaviour
 		{
 			SpawnPiece();
 		}
+
+
 	}
 
 	public void SpawnPiece()
@@ -88,7 +102,6 @@ public class Board : MonoBehaviour
 	}
 
 	#region Movement
-
 	public bool TryMove(Vector2Int direction)
 	{
 		Vector2Int targetIndex = currentTile.index;
@@ -155,6 +168,33 @@ public class Board : MonoBehaviour
 		{
 			TryMoveRight();
 		}
+	}
+
+	void OnSoftDrop(InputValue value)
+	{
+		if (value.Get<float>() == 0)
+		{
+			nextDropTime = -1;
+		}
+		else
+		{
+			TryMoveDown();
+			nextDropTime = Time.time + dropRepeatTime;
+		}
+
+	}
+
+	void OnHardDrop()
+	{
+		bool moved;
+		do
+		{
+			moved = TryMoveDown();
+		} 
+		while (moved);
+
+		// Make next tick happen instantly
+		nextTickTime = Time.time;
 	}
 
 	private void OnDrawGizmos()

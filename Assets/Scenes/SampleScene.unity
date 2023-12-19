@@ -247,8 +247,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dimensions: {x: 10, y: 20}
   ticksPerSecond: 1
-  moveRepeatTime: 0.1
+  moveRepeatTime: 0.05
   moveRepeatDelay: 0.3
+  dropRepeatTime: 0.05
   tilePrefab: {fileID: 6784293485470640221, guid: 68afe77b7ed695a478ce8e0f6e7c5170, type: 3}
 --- !u!4 &1696188844
 Transform:

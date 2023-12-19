@@ -25,12 +25,12 @@
                 },
                 {
                     "name": "SoftDrop",
-                    "type": "Button",
+                    "type": "Value",
                     "id": "c56bf450-5cb0-42c4-b2a1-cc0f3364da0c",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
-                    "initialStateCheck": false
+                    "initialStateCheck": true
                 },
                 {
                     "name": "HardDrop",
