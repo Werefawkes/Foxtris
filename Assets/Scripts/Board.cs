@@ -32,9 +32,9 @@ public class Board : MonoBehaviour
 	void Start()
 	{
 		// Create the board
-		tiles = new Tile[dimensions.x, dimensions.y];
+		tiles = new Tile[dimensions.x, dimensions.y + 1];
 
-		for (int y = 0; y < dimensions.y; y++)
+		for (int y = 0; y < dimensions.y + 1; y++)
 		{
 			for (int x = 0; x < dimensions.x; x++)
 			{
@@ -99,9 +99,9 @@ public class Board : MonoBehaviour
 
 	public void SpawnPiece()
 	{
-		PieceSO piece = GetNextPeice();
+		PieceSO piece = GetNextPiece();
 
-		Vector2Int center = new(dimensions.x / 2, dimensions.y - 1);
+		Vector2Int center = new(dimensions.x / 2, dimensions.y - 2);
 
 		currentTiles = new();
 		foreach (Vector2Int p in piece.tiles)
@@ -166,9 +166,9 @@ public class Board : MonoBehaviour
 		}
 	}
 
-	public PieceSO GetNextPeice()
+	public PieceSO GetNextPiece()
 	{
-		return pieceSet.pieces[0];
+		return pieceSet.pieces[Random.Range(0, pieceSet.pieces.Count)];
 	}
 
 	#region Movement
@@ -228,6 +228,66 @@ public class Board : MonoBehaviour
 		return TryMove(Vector2Int.right);
 	}
 
+	public bool TryRotate(bool clockwise)
+	{
+		Vector2 center = Vector2.zero;
+		foreach (Tile t in currentTiles)
+		{
+			center += t.index;
+		}
+		center /= currentTiles.Count;
+
+		List<Tile> newTiles = new();
+		foreach (Tile tile in currentTiles)
+		{
+			Vector2 dif = center - tile.index;
+			Vector2 rDif = new(dif.y, dif.x);
+			if (!clockwise) rDif = -rDif;
+			rDif += center;
+
+			Vector2Int targetIndex;
+
+			if (clockwise)
+			{
+				targetIndex = new(Mathf.CeilToInt(rDif.x), Mathf.CeilToInt(rDif.y));
+			}
+			else
+			{
+				targetIndex = new(Mathf.CeilToInt(rDif.x), Mathf.CeilToInt(rDif.y));
+
+				//targetIndex = new(Mathf.FloorToInt(rDif.x), Mathf.FloorToInt(rDif.y));
+			}
+
+			// Fail if the target would be off the board
+			if (targetIndex.x < 0 || targetIndex.x >= dimensions.x || targetIndex.y < 0 || targetIndex.y >= dimensions.y)
+			{
+				return false;
+			}
+
+			Tile target = tiles[targetIndex.x, targetIndex.y];
+
+			if (target.IsEmpty || currentTiles.Contains(target))
+			{
+				newTiles.Add(target);
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		for (int i = 0; i < newTiles.Count; i++)
+		{
+			newTiles[i].CopyFrom(currentTiles[i]);
+			if (!newTiles.Contains(currentTiles[i]))
+			{
+				currentTiles[i].Clear();
+			}
+		}
+
+		currentTiles = newTiles;
+		return true;
+	}
 	#endregion
 
 	#region Input Methods
@@ -253,6 +313,14 @@ public class Board : MonoBehaviour
 		{
 			TryMoveRight();
 		}
+	}
+
+	void OnRotate(InputValue value)
+	{
+		float v = value.Get<float>();
+		if (v == 0) return;
+
+		TryRotate(v > 0);
 	}
 
 	void OnSoftDrop(InputValue value)
