@@ -123,6 +123,13 @@ public class Board : MonoBehaviour
 		}
 	}
 
+	public PieceSO GetNextPiece()
+	{
+		return pieceSet.pieces[Random.Range(0, pieceSet.pieces.Count)];
+	}
+
+
+	#region Line Checking
 	public void ClearLine(int rowIndex)
 	{
 		for (int x = 0; x < dimensions.x; x++)
@@ -165,11 +172,7 @@ public class Board : MonoBehaviour
 			}
 		}
 	}
-
-	public PieceSO GetNextPiece()
-	{
-		return pieceSet.pieces[Random.Range(0, pieceSet.pieces.Count)];
-	}
+	#endregion
 
 	#region Movement
 	public bool TryMove(Vector2Int direction)
@@ -236,27 +239,24 @@ public class Board : MonoBehaviour
 			center += t.index;
 		}
 		center /= currentTiles.Count;
+		Debug.Log(center);
+		Vector2Int centerInt = new(Mathf.RoundToInt(center.x), Mathf.RoundToInt(center.y));
 
 		List<Tile> newTiles = new();
 		foreach (Tile tile in currentTiles)
 		{
-			Vector2 dif = center - tile.index;
-			Vector2 rDif = new(dif.y, dif.x);
-			if (!clockwise) rDif = -rDif;
-			rDif += center;
-
-			Vector2Int targetIndex;
-
+			Vector2Int dif = centerInt - tile.index;
+			Vector2Int rDif = new(dif.y, dif.x);
 			if (clockwise)
 			{
-				targetIndex = new(Mathf.CeilToInt(rDif.x), Mathf.CeilToInt(rDif.y));
+				rDif.x = -rDif.x;
 			}
 			else
 			{
-				targetIndex = new(Mathf.CeilToInt(rDif.x), Mathf.CeilToInt(rDif.y));
-
-				//targetIndex = new(Mathf.FloorToInt(rDif.x), Mathf.FloorToInt(rDif.y));
+				rDif.y = -rDif.y;
 			}
+
+			Vector2Int targetIndex = rDif + centerInt;
 
 			// Fail if the target would be off the board
 			if (targetIndex.x < 0 || targetIndex.x >= dimensions.x || targetIndex.y < 0 || targetIndex.y >= dimensions.y)
@@ -364,5 +364,18 @@ public class Board : MonoBehaviour
 			new(-dim.x, dim.y)
 		};
 		Gizmos.DrawLineStrip(points, true);
+
+		//if (currentTiles == null) return;
+		//Vector2 center = Vector2.zero;
+		//foreach (Tile t in currentTiles)
+		//{
+		//	center += t.index;
+		//}
+		//center /= currentTiles.Count;
+		//Vector2Int centerInt = new(Mathf.RoundToInt(center.x), Mathf.RoundToInt(center.y));
+		//Gizmos.color = Color.blue;
+		//Gizmos.DrawSphere(center * transform.localScale, 0.5f * transform.localScale.x);
+		//Gizmos.color = Color.yellow;
+		//Gizmos.DrawSphere(new(centerInt.x * transform.localScale.x, centerInt.y * transform.localScale.y), 0.5f * transform.localScale.x);
 	}
 }
