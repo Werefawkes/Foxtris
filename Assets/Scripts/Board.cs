@@ -12,6 +12,7 @@ public class Board : MonoBehaviour
 	[Header("Game")]
 	public float ticksPerSecond = 1;
 	public PieceSetSO pieceSet;
+	public PaletteSO palette;
 	float nextTickTime;
 
 	List<Tile> currentTiles;
@@ -112,7 +113,7 @@ public class Board : MonoBehaviour
 			if (tile.IsEmpty)
 			{
 				currentTiles.Add(tile);
-				tile.Fill(Color.red);
+				tile.Fill(palette.colors[piece.colorIndex]);
 			}
 			else
 			{

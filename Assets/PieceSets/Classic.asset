@@ -15,3 +15,8 @@ MonoBehaviour:
   pieces:
   - {fileID: 11400000, guid: f11b573bc0d684144ad2942870bd9d7f, type: 2}
   - {fileID: 11400000, guid: 6c5c268e27038624098778b7f047eb54, type: 2}
+  - {fileID: 11400000, guid: a609b5e8898eaeb4d929ed18111b66ea, type: 2}
+  - {fileID: 11400000, guid: af0f5a4061f0ceb43bfe5ef2032f5d7b, type: 2}
+  - {fileID: 11400000, guid: 6c0e40abcc0cd2046870b10b4c7635d3, type: 2}
+  - {fileID: 11400000, guid: d674cd25519018047bd9158b1a4c04a4, type: 2}
+  - {fileID: 11400000, guid: a86f9c80fa6f394419770d6d283879cd, type: 2}

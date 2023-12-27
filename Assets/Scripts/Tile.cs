@@ -35,7 +35,7 @@ public class Tile : MonoBehaviour
 		spriteRenderer.color = emptyColor;
 	}
 
-	public void Fill(Color color)
+	public void Fill(Color newColor)
 	{
 		IsEmpty = false;
 
@@ -43,7 +43,8 @@ public class Tile : MonoBehaviour
 		{
 			spriteRenderer.sprite = sprite;
 		}
-		spriteRenderer.color = color;
+		spriteRenderer.color = newColor;
+		color = newColor;
 	}
 
 	public void CopyFrom(Tile tile)
