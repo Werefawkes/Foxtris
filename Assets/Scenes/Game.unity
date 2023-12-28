@@ -246,8 +246,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dimensions: {x: 10, y: 20}
+  buffer: 2
   ticksPerSecond: 1
   pieceSet: {fileID: 11400000, guid: d8266e5c3e68c2a4bb53acb5a7c56078, type: 2}
+  palette: {fileID: 11400000, guid: ca3e94e909ce78545aa1e393437dbe73, type: 2}
   moveRepeatTime: 0.05
   moveRepeatDelay: 0.3
   dropRepeatTime: 0.05

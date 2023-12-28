@@ -241,7 +241,6 @@ public class Board : MonoBehaviour
 			center += t.index;
 		}
 		center /= currentTiles.Count;
-		Debug.Log(center);
 		Vector2Int centerInt = new(Mathf.RoundToInt(center.x), Mathf.RoundToInt(center.y));
 
 		List<Tile> newTiles = new();
