@@ -2,22 +2,25 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Foxthorne.FoxScreens;
 
 public class Board : MonoBehaviour
 {
 	[Header("Board")]
 	public Vector2Int dimensions;
+	public int buffer = 2;
 
 	[Header("Game")]
 	public float ticksPerSecond = 1;
 	public PieceSetSO pieceSet;
+	public PaletteSO palette;
 	float nextTickTime;
 
 	List<Tile> currentTiles;
 
 	Tile[,] tiles;
 
-	[Header("Input"), Tooltip("The time in seconds it takes to repeat the move when holding the button down.")]
+	[Header("Input"), Tooltip("The time in seconds it takes to repeat the move while holding the button down.")]
 	public float moveRepeatTime = 0.1f;
 	[Tooltip("The time in seconds it takes to begin repeating the move when holding the button down.")]
 	public float moveRepeatDelay = 0.2f;
@@ -32,9 +35,9 @@ public class Board : MonoBehaviour
 	void Start()
 	{
 		// Create the board
-		tiles = new Tile[dimensions.x, dimensions.y + 1];
+		tiles = new Tile[dimensions.x, dimensions.y + buffer];
 
-		for (int y = 0; y < dimensions.y + 1; y++)
+		for (int y = 0; y < dimensions.y + buffer; y++)
 		{
 			for (int x = 0; x < dimensions.x; x++)
 			{
@@ -55,6 +58,15 @@ public class Board : MonoBehaviour
 
 	void Update()
 	{
+		if (UIManager.IsUIClear)
+		{
+			Time.timeScale = 1;
+		}
+		else
+		{
+			Time.timeScale = 0;
+		}
+
 		if (Time.time >= nextTickTime)
 		{
 			nextTickTime = Time.time + (1 / ticksPerSecond);
@@ -101,7 +113,7 @@ public class Board : MonoBehaviour
 	{
 		PieceSO piece = GetNextPiece();
 
-		Vector2Int center = new(dimensions.x / 2, dimensions.y - 2);
+		Vector2Int center = new(dimensions.x / 2, dimensions.y - 1);
 
 		currentTiles = new();
 		foreach (Vector2Int p in piece.tiles)
@@ -111,7 +123,7 @@ public class Board : MonoBehaviour
 			if (tile.IsEmpty)
 			{
 				currentTiles.Add(tile);
-				tile.Fill(Color.red);
+				tile.Fill(palette.colors[piece.colorIndex]);
 			}
 			else
 			{
@@ -239,7 +251,6 @@ public class Board : MonoBehaviour
 			center += t.index;
 		}
 		center /= currentTiles.Count;
-		Debug.Log(center);
 		Vector2Int centerInt = new(Mathf.RoundToInt(center.x), Mathf.RoundToInt(center.y));
 
 		List<Tile> newTiles = new();
@@ -259,7 +270,7 @@ public class Board : MonoBehaviour
 			Vector2Int targetIndex = rDif + centerInt;
 
 			// Fail if the target would be off the board
-			if (targetIndex.x < 0 || targetIndex.x >= dimensions.x || targetIndex.y < 0 || targetIndex.y >= dimensions.y)
+			if (targetIndex.x < 0 || targetIndex.x >= dimensions.x || targetIndex.y < 0 || targetIndex.y >= dimensions.y + buffer)
 			{
 				return false;
 			}
@@ -291,8 +302,15 @@ public class Board : MonoBehaviour
 	#endregion
 
 	#region Input Methods
+	bool CanMove()
+	{
+		return UIManager.IsUIClear;
+	}
+
 	void OnMove(InputValue value)
 	{
+		if (!CanMove()) return;
+
 		float v = value.Get<float>();
 		// Don't move if v == 0
 		if (v == 0)
@@ -317,6 +335,8 @@ public class Board : MonoBehaviour
 
 	void OnRotate(InputValue value)
 	{
+		if (!CanMove()) return;
+
 		float v = value.Get<float>();
 		if (v == 0) return;
 
@@ -325,6 +345,8 @@ public class Board : MonoBehaviour
 
 	void OnSoftDrop(InputValue value)
 	{
+		if (!CanMove()) return;
+
 		if (value.Get<float>() == 0)
 		{
 			nextDropTime = -1;
@@ -339,6 +361,8 @@ public class Board : MonoBehaviour
 
 	void OnHardDrop()
 	{
+		if (!CanMove()) return;
+
 		bool moved;
 		do
 		{
@@ -348,6 +372,18 @@ public class Board : MonoBehaviour
 
 		// Make next tick happen instantly
 		nextTickTime = Time.time;
+	}
+
+	void OnPause()
+	{
+		if (UIManager.IsUIClear)
+		{
+			UIManager.Instance.OpenScreen("PauseMenu");
+		}
+		else
+		{
+			UIManager.Instance.CloseAllScreens();
+		}
 	}
 	#endregion
 
@@ -365,17 +401,24 @@ public class Board : MonoBehaviour
 		};
 		Gizmos.DrawLineStrip(points, true);
 
-		//if (currentTiles == null) return;
-		//Vector2 center = Vector2.zero;
-		//foreach (Tile t in currentTiles)
-		//{
-		//	center += t.index;
-		//}
-		//center /= currentTiles.Count;
-		//Vector2Int centerInt = new(Mathf.RoundToInt(center.x), Mathf.RoundToInt(center.y));
-		//Gizmos.color = Color.blue;
-		//Gizmos.DrawSphere(center * transform.localScale, 0.5f * transform.localScale.x);
-		//Gizmos.color = Color.yellow;
-		//Gizmos.DrawSphere(new(centerInt.x * transform.localScale.x, centerInt.y * transform.localScale.y), 0.5f * transform.localScale.x);
+		if (currentTiles == null) return;
+		Vector2 center = Vector2.zero;
+		foreach (Tile t in currentTiles)
+		{
+			center += t.index;
+		}
+		center /= currentTiles.Count;
+		Vector2Int centerInt = new(Mathf.RoundToInt(center.x), Mathf.RoundToInt(center.y));
+		Vector2 offset = new(0.5f, 0.5f);
+
+		Gizmos.color = Color.blue;
+		center -= dimensions / 2;
+		center += offset;
+		Gizmos.DrawSphere(center * transform.localScale, 0.5f * transform.localScale.x);
+
+		Gizmos.color = Color.yellow;
+		Vector2 ci = new(centerInt.x - dimensions.x / 2, centerInt.y - dimensions.y / 2);
+		ci += offset;
+		Gizmos.DrawSphere(ci * transform.localScale, 0.5f * transform.localScale.x);
 	}
 }
