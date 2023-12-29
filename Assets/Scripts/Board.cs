@@ -58,6 +58,15 @@ public class Board : MonoBehaviour
 
 	void Update()
 	{
+		if (UIManager.IsUIClear)
+		{
+			Time.timeScale = 1;
+		}
+		else
+		{
+			Time.timeScale = 0;
+		}
+
 		if (Time.time >= nextTickTime)
 		{
 			nextTickTime = Time.time + (1 / ticksPerSecond);
@@ -104,7 +113,7 @@ public class Board : MonoBehaviour
 	{
 		PieceSO piece = GetNextPiece();
 
-		Vector2Int center = new(dimensions.x / 2, dimensions.y - 2);
+		Vector2Int center = new(dimensions.x / 2, dimensions.y - 1);
 
 		currentTiles = new();
 		foreach (Vector2Int p in piece.tiles)
@@ -370,12 +379,10 @@ public class Board : MonoBehaviour
 		if (UIManager.IsUIClear)
 		{
 			UIManager.Instance.OpenScreen("PauseMenu");
-			Time.timeScale = 0;
 		}
 		else
 		{
 			UIManager.Instance.CloseAllScreens();
-			Time.timeScale = 1;
 		}
 	}
 	#endregion
