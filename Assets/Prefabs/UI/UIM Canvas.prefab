@@ -192,7 +192,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 1
-  m_AdditionalShaderChannelsFlag: 25
+  m_AdditionalShaderChannelsFlag: 1
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -209,7 +209,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f14d7423a6a5aea459048679dad18b1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Persistent: 1
+  Persistent: 0
+  LockCursor: 1
   allScreens:
   - {fileID: 7081321516638367314}
   openScreens: []
