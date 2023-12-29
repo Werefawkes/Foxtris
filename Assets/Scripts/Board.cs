@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Foxthorne.FoxScreens;
 
 public class Board : MonoBehaviour
 {
@@ -292,8 +293,15 @@ public class Board : MonoBehaviour
 	#endregion
 
 	#region Input Methods
+	bool CanMove()
+	{
+		return UIManager.IsUIClear;
+	}
+
 	void OnMove(InputValue value)
 	{
+		if (!CanMove()) return;
+
 		float v = value.Get<float>();
 		// Don't move if v == 0
 		if (v == 0)
@@ -318,6 +326,8 @@ public class Board : MonoBehaviour
 
 	void OnRotate(InputValue value)
 	{
+		if (!CanMove()) return;
+
 		float v = value.Get<float>();
 		if (v == 0) return;
 
@@ -326,6 +336,8 @@ public class Board : MonoBehaviour
 
 	void OnSoftDrop(InputValue value)
 	{
+		if (!CanMove()) return;
+
 		if (value.Get<float>() == 0)
 		{
 			nextDropTime = -1;
@@ -340,6 +352,8 @@ public class Board : MonoBehaviour
 
 	void OnHardDrop()
 	{
+		if (!CanMove()) return;
+
 		bool moved;
 		do
 		{
@@ -349,6 +363,20 @@ public class Board : MonoBehaviour
 
 		// Make next tick happen instantly
 		nextTickTime = Time.time;
+	}
+
+	void OnPause()
+	{
+		if (UIManager.IsUIClear)
+		{
+			UIManager.Instance.OpenScreen("PauseMenu");
+			Time.timeScale = 0;
+		}
+		else
+		{
+			UIManager.Instance.CloseAllScreens();
+			Time.timeScale = 1;
+		}
 	}
 	#endregion
 
