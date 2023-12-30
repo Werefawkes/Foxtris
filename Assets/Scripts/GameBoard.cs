@@ -21,6 +21,8 @@ public class GameBoard : Board
 	float nextDropTime = -1;
 	float moveInput;
 
+	List<PieceSO> pieceBag = new();
+
 	public StaticBoard holdBoard;
 	public StaticBoard previewBoard;
 
@@ -104,7 +106,16 @@ public class GameBoard : Board
 
 	public PieceSO GetNextPiece()
 	{
-		return pieceSet.pieces[Random.Range(0, pieceSet.pieces.Count)];
+		// 7 bag
+		if (pieceBag.Count == 0)
+		{
+			pieceBag.AddRange(pieceSet.pieces);
+		}
+		// Draw a random piece
+		PieceSO next = pieceBag[Random.Range(0, pieceBag.Count)];
+		pieceBag.Remove(next);
+
+		return next;
 	}
 
 
