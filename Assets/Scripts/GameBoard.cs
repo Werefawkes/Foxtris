@@ -1,0 +1,398 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using Foxthorne.FoxScreens;
+
+public class GameBoard : Board
+{
+	[Header("Game")]
+	public float ticksPerSecond = 1;
+	public PieceSetSO pieceSet;
+	public PaletteSO palette;
+	float nextTickTime;
+
+	List<Tile> currentTiles;
+
+	[Header("Input"), Tooltip("The time in seconds it takes to repeat the move while holding the button down.")]
+	public float moveRepeatTime = 0.1f;
+	[Tooltip("The time in seconds it takes to begin repeating the move when holding the button down.")]
+	public float moveRepeatDelay = 0.2f;
+	public float dropRepeatTime = 0.1f;
+	float nextMoveTime = -1;
+	float nextDropTime = -1;
+	float moveInput;
+
+	public override void Start()
+	{
+		base.Start();
+
+		SpawnPiece();
+	}
+
+	void Update()
+	{
+		if (UIManager.IsUIClear)
+		{
+			Time.timeScale = 1;
+		}
+		else
+		{
+			Time.timeScale = 0;
+		}
+
+		if (Time.time >= nextTickTime)
+		{
+			nextTickTime = Time.time + (1 / ticksPerSecond);
+			Tick();
+		}
+
+		// Input repeating
+		if (nextMoveTime > 0 && Time.time >= nextMoveTime)
+		{
+			if (moveInput < 0)
+			{
+				TryMoveLeft();
+			}
+			else
+			{
+				TryMoveRight();
+			}
+
+			nextMoveTime = Time.time + moveRepeatTime;
+		}
+
+		// Soft drops
+		if (nextDropTime > 0 && Time.time >= nextDropTime)
+		{
+			TryMoveDown();
+			nextDropTime = Time.time + dropRepeatTime;
+			// Postpone next tick
+			nextTickTime = Time.time + (1 / ticksPerSecond);
+		}
+	}
+
+	void Tick()
+	{
+		// Fall
+		if (!TryMoveDown())
+		{
+			currentTiles = new();
+			CheckLines();
+			SpawnPiece();
+		}
+	}
+
+	public void SpawnPiece()
+	{
+		PieceSO piece = GetNextPiece();
+
+		Vector2Int center = new(dimensions.x / 2, dimensions.y - 1);
+
+		currentTiles = new();
+		foreach (Vector2Int p in piece.tiles)
+		{
+			Vector2Int tPos = center + p;
+			Tile tile = tiles[tPos.x, tPos.y];
+			if (tile.IsEmpty)
+			{
+				currentTiles.Add(tile);
+				tile.Fill(palette.colors[piece.colorIndex]);
+			}
+			else
+			{
+				// Game over
+				Debug.Log("Game over");
+				currentTiles = new();
+				return;
+			}
+		}
+	}
+
+	public PieceSO GetNextPiece()
+	{
+		return pieceSet.pieces[Random.Range(0, pieceSet.pieces.Count)];
+	}
+
+
+	#region Line Checking
+	public void ClearLine(int rowIndex)
+	{
+		for (int x = 0; x < dimensions.x; x++)
+		{
+			// If there's a tile above
+			if (rowIndex + 1 < dimensions.y)
+			{
+				tiles[x, rowIndex].CopyFrom(tiles[x, rowIndex + 1]);
+			}
+			else
+			{
+				tiles[x, rowIndex].Clear();
+			}
+		}
+
+		if (rowIndex + 1 < dimensions.y)
+		{
+			ClearLine(rowIndex + 1);
+		}
+	}
+
+	public void CheckLines()
+	{
+		// Check from the top down
+		for (int y = dimensions.y - 1; y >= 0; y--)
+		{
+			bool full = true;
+			for (int x = 0; x < dimensions.x; x++)
+			{
+				if (tiles[x, y].IsEmpty || currentTiles.Contains(tiles[x, y]))
+				{
+					full = false;
+					break;
+				}
+			}
+
+			if (full)
+			{
+				ClearLine(y);
+			}
+		}
+	}
+	#endregion
+
+	#region Movement
+	public bool TryMove(Vector2Int direction)
+	{
+		if (currentTiles == null || currentTiles.Count == 0) return false;
+
+		List<Tile> newTiles = new();
+		foreach (Tile tile in currentTiles)
+		{
+			Vector2Int targetIndex = tile.index;
+			targetIndex += direction;
+
+			// Fail if the target would be off the board
+			if (targetIndex.x < 0 || targetIndex.x >= dimensions.x || targetIndex.y < 0)
+			{
+				return false;
+			}
+
+			Tile target = tiles[targetIndex.x, targetIndex.y];
+
+			if (target.IsEmpty || currentTiles.Contains(target))
+			{
+				newTiles.Add(target);
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		for (int i = 0; i < newTiles.Count; i++)
+		{
+			newTiles[i].CopyFrom(currentTiles[i]);
+			if (!newTiles.Contains(currentTiles[i]))
+			{
+				currentTiles[i].Clear();
+			}
+		}
+
+		currentTiles = newTiles;
+		return true;
+	}
+
+	public bool TryMoveDown()
+	{
+		return TryMove(Vector2Int.down);
+	}
+
+	public bool TryMoveLeft()
+	{
+		return TryMove(Vector2Int.left);
+	}
+
+	public bool TryMoveRight()
+	{
+		return TryMove(Vector2Int.right);
+	}
+
+	public bool TryRotate(bool clockwise)
+	{
+		Vector2 center = Vector2.zero;
+		foreach (Tile t in currentTiles)
+		{
+			center += t.index;
+		}
+		center /= currentTiles.Count;
+		Vector2Int centerInt = new(Mathf.RoundToInt(center.x), Mathf.RoundToInt(center.y));
+
+		List<Tile> newTiles = new();
+		foreach (Tile tile in currentTiles)
+		{
+			Vector2Int dif = centerInt - tile.index;
+			Vector2Int rDif = new(dif.y, dif.x);
+			if (clockwise)
+			{
+				rDif.x = -rDif.x;
+			}
+			else
+			{
+				rDif.y = -rDif.y;
+			}
+
+			Vector2Int targetIndex = rDif + centerInt;
+
+			// Fail if the target would be off the board
+			if (targetIndex.x < 0 || targetIndex.x >= dimensions.x || targetIndex.y < 0 || targetIndex.y >= dimensions.y + buffer)
+			{
+				return false;
+			}
+
+			Tile target = tiles[targetIndex.x, targetIndex.y];
+
+			if (target.IsEmpty || currentTiles.Contains(target))
+			{
+				newTiles.Add(target);
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		for (int i = 0; i < newTiles.Count; i++)
+		{
+			newTiles[i].CopyFrom(currentTiles[i]);
+			if (!newTiles.Contains(currentTiles[i]))
+			{
+				currentTiles[i].Clear();
+			}
+		}
+
+		currentTiles = newTiles;
+		return true;
+	}
+	#endregion
+
+	#region Input Methods
+	bool CanMove()
+	{
+		return UIManager.IsUIClear;
+	}
+
+	void OnMove(InputValue value)
+	{
+		if (!CanMove()) return;
+
+		float v = value.Get<float>();
+		// Don't move if v == 0
+		if (v == 0)
+		{
+			nextMoveTime = -1;
+		}
+		else
+		{
+			nextMoveTime = Time.time + moveRepeatDelay;
+			moveInput = v;
+		}
+
+		if (v < 0)
+		{
+			TryMoveLeft();
+		}
+		else if (v > 0)
+		{
+			TryMoveRight();
+		}
+	}
+
+	void OnRotate(InputValue value)
+	{
+		if (!CanMove()) return;
+
+		float v = value.Get<float>();
+		if (v == 0) return;
+
+		TryRotate(v > 0);
+	}
+
+	void OnSoftDrop(InputValue value)
+	{
+		if (!CanMove()) return;
+
+		if (value.Get<float>() == 0)
+		{
+			nextDropTime = -1;
+		}
+		else
+		{
+			TryMoveDown();
+			nextDropTime = Time.time + dropRepeatTime;
+		}
+
+	}
+
+	void OnHardDrop()
+	{
+		if (!CanMove()) return;
+
+		bool moved;
+		do
+		{
+			moved = TryMoveDown();
+		} 
+		while (moved);
+
+		// Make next tick happen instantly
+		nextTickTime = Time.time;
+	}
+
+	void OnPause()
+	{
+		if (UIManager.IsUIClear)
+		{
+			UIManager.Instance.OpenScreen("PauseMenu");
+		}
+		else
+		{
+			UIManager.Instance.CloseAllScreens();
+		}
+	}
+	#endregion
+
+	private void OnDrawGizmos()
+	{
+		Vector2 dim = dimensions / 2;
+		dim.x *= transform.localScale.x;
+		dim.y *= transform.localScale.y;
+		Vector3[] points = new Vector3[4]
+		{
+			new(-dim.x, -dim.y),
+			new(dim.x, -dim.y),
+			new(dim.x, dim.y),
+			new(-dim.x, dim.y)
+		};
+		Gizmos.DrawLineStrip(points, true);
+
+		if (currentTiles == null) return;
+		Vector2 center = Vector2.zero;
+		foreach (Tile t in currentTiles)
+		{
+			center += t.index;
+		}
+		center /= currentTiles.Count;
+		Vector2Int centerInt = new(Mathf.RoundToInt(center.x), Mathf.RoundToInt(center.y));
+		Vector2 offset = new(0.5f, 0.5f);
+
+		Gizmos.color = Color.blue;
+		center -= dimensions / 2;
+		center += offset;
+		Gizmos.DrawSphere(center * transform.localScale, 0.5f * transform.localScale.x);
+
+		Gizmos.color = Color.yellow;
+		Vector2 ci = new(centerInt.x - dimensions.x / 2, centerInt.y - dimensions.y / 2);
+		ci += offset;
+		Gizmos.DrawSphere(ci * transform.localScale, 0.5f * transform.localScale.x);
+	}
+}
