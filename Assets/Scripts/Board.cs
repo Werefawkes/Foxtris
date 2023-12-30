@@ -10,11 +10,13 @@ public class Board : MonoBehaviour
 	// TODO: Move current palette to player prefs
 	public PaletteSO palette;
 
+
 	public Tile[,] tiles;
 	public GameObject tilePrefab;
 
 	public List<Tile> currentTiles;
 
+	public PieceSO CurrentPiece { get; protected set; }
 
 	public virtual void Start()
 	{
@@ -51,6 +53,13 @@ public class Board : MonoBehaviour
 		foreach (Vector2Int p in piece.tiles)
 		{
 			Vector2Int tPos = center + p;
+			// Check in bounds
+			if (tPos.x < 0 || tPos.x >= dimensions.x || tPos.y < 0 || tPos.y >= dimensions.y + buffer)
+			{
+				Debug.LogWarning("Attempted to spawn piece off the board. Is setting a higher buffer needed?");
+				continue;
+			}
+
 			Tile tile = tiles[tPos.x, tPos.y];
 			if (tile.IsEmpty)
 			{
@@ -64,7 +73,18 @@ public class Board : MonoBehaviour
 			}
 		}
 
+		CurrentPiece = piece;
 		return true;
+	}
+
+	public void ClearCurrentTiles()
+	{
+		foreach (Tile t in currentTiles)
+		{
+			t.Clear();
+		}
+		currentTiles = new();
+		CurrentPiece = null;
 	}
 
 

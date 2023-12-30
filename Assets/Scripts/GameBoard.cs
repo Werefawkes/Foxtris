@@ -10,7 +10,7 @@ public class GameBoard : Board
 	public float ticksPerSecond = 1;
 	public PieceSetSO pieceSet;
 	float nextTickTime;
-
+	bool holdSpent = false;
 
 	[Header("Input"), Tooltip("The time in seconds it takes to repeat the move while holding the button down.")]
 	public float moveRepeatTime = 0.1f;
@@ -79,14 +79,26 @@ public class GameBoard : Board
 		// Fall
 		if (!TryMoveDown())
 		{
+			// Piece lands
 			currentTiles = new();
 			CheckLines();
-			if (!SpawnPiece(previewBoard.CurrentPiece))
-			{
-				// Game over
-				Debug.Log("Game over");
-			}
+			TrySpawnNext();
+			holdSpent = false;
+		}
+	}
+
+	bool TrySpawnNext()
+	{
+		if (!SpawnPiece(previewBoard.CurrentPiece))
+		{
+			// Game over
+			Debug.Log("Game over");
+			return false;
+		}
+		else
+		{
 			previewBoard.DisplayPiece(GetNextPiece());
+			return true;
 		}
 	}
 
@@ -327,6 +339,26 @@ public class GameBoard : Board
 
 		// Make next tick happen instantly
 		nextTickTime = Time.time;
+	}
+
+	void OnHold()
+	{
+		if (holdSpent) return;
+
+		PieceSO held = holdBoard.CurrentPiece;
+		holdBoard.DisplayPiece(CurrentPiece);
+		ClearCurrentTiles();
+
+		if (held == null)
+		{
+			TrySpawnNext();
+		}
+		else
+		{
+			SpawnPiece(held);
+		}
+
+		holdSpent = true;
 	}
 
 	void OnPause()

@@ -6,8 +6,6 @@ public class StaticBoard : Board
 {
 	public GameBoard board;
 
-	public PieceSO CurrentPiece { get; private set; }
-
 	public override void Start()
 	{
 		base.Start();
@@ -15,17 +13,8 @@ public class StaticBoard : Board
 
 	public void DisplayPiece(PieceSO piece)
 	{
-		CurrentPiece = piece;
-		Clear();
+		ClearCurrentTiles();
 
 		SpawnPiece(piece, true);
-	}
-
-	public void Clear()
-	{
-		foreach (Tile t in tiles)
-		{
-			t.Clear();
-		}
 	}
 }
