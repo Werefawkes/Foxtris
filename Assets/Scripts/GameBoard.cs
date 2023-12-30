@@ -9,10 +9,8 @@ public class GameBoard : Board
 	[Header("Game")]
 	public float ticksPerSecond = 1;
 	public PieceSetSO pieceSet;
-	public PaletteSO palette;
 	float nextTickTime;
 
-	List<Tile> currentTiles;
 
 	[Header("Input"), Tooltip("The time in seconds it takes to repeat the move while holding the button down.")]
 	public float moveRepeatTime = 0.1f;
@@ -23,11 +21,15 @@ public class GameBoard : Board
 	float nextDropTime = -1;
 	float moveInput;
 
+	public StaticBoard holdBoard;
+	public StaticBoard previewBoard;
+
 	public override void Start()
 	{
 		base.Start();
 
-		SpawnPiece();
+		SpawnPiece(GetNextPiece());
+		previewBoard.DisplayPiece(GetNextPiece());
 	}
 
 	void Update()
@@ -79,33 +81,12 @@ public class GameBoard : Board
 		{
 			currentTiles = new();
 			CheckLines();
-			SpawnPiece();
-		}
-	}
-
-	public void SpawnPiece()
-	{
-		PieceSO piece = GetNextPiece();
-
-		Vector2Int center = new(dimensions.x / 2, dimensions.y - 1);
-
-		currentTiles = new();
-		foreach (Vector2Int p in piece.tiles)
-		{
-			Vector2Int tPos = center + p;
-			Tile tile = tiles[tPos.x, tPos.y];
-			if (tile.IsEmpty)
-			{
-				currentTiles.Add(tile);
-				tile.Fill(palette.colors[piece.colorIndex]);
-			}
-			else
+			if (!SpawnPiece(previewBoard.CurrentPiece))
 			{
 				// Game over
 				Debug.Log("Game over");
-				currentTiles = new();
-				return;
 			}
+			previewBoard.DisplayPiece(GetNextPiece());
 		}
 	}
 
@@ -361,19 +342,9 @@ public class GameBoard : Board
 	}
 	#endregion
 
-	private void OnDrawGizmos()
+	public override void OnDrawGizmos()
 	{
-		Vector2 dim = dimensions / 2;
-		dim.x *= transform.localScale.x;
-		dim.y *= transform.localScale.y;
-		Vector3[] points = new Vector3[4]
-		{
-			new(-dim.x, -dim.y),
-			new(dim.x, -dim.y),
-			new(dim.x, dim.y),
-			new(-dim.x, dim.y)
-		};
-		Gizmos.DrawLineStrip(points, true);
+		base.OnDrawGizmos();
 
 		if (currentTiles == null) return;
 		Vector2 center = Vector2.zero;
@@ -394,5 +365,6 @@ public class GameBoard : Board
 		Vector2 ci = new(centerInt.x - dimensions.x / 2, centerInt.y - dimensions.y / 2);
 		ci += offset;
 		Gizmos.DrawSphere(ci * transform.localScale, 0.5f * transform.localScale.x);
+
 	}
 }
