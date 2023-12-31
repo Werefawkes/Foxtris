@@ -21,7 +21,9 @@ public class GameBoard : Board
 	float nextDropTime = -1;
 	float moveInput;
 
-	List<PieceSO> pieceBag = new();
+	readonly List<PieceSO> pieceBag = new();
+
+	List<Tile> ghostTiles = new();
 
 	public StaticBoard holdBoard;
 	public StaticBoard previewBoard;
@@ -83,6 +85,7 @@ public class GameBoard : Board
 		{
 			// Piece lands
 			currentTiles = new();
+			ghostTiles = new();
 			CheckLines();
 			TrySpawnNext();
 			holdSpent = false;
@@ -100,6 +103,7 @@ public class GameBoard : Board
 		else
 		{
 			previewBoard.DisplayPiece(GetNextPiece());
+			CreateGhost();
 			return true;
 		}
 	}
@@ -203,7 +207,69 @@ public class GameBoard : Board
 		}
 
 		currentTiles = newTiles;
+		CreateGhost();
 		return true;
+	}
+
+	public void CreateGhost()
+	{
+		if (currentTiles == null || currentTiles.Count == 0) return;
+
+		List<Tile> oldTiles = new(currentTiles);
+		List<Tile> newTiles = new();
+		bool didMove = true;
+		while (didMove)
+		{
+			foreach (Tile tile in oldTiles)
+			{
+				Vector2Int targetIndex = tile.index;
+				targetIndex += Vector2Int.down;
+
+				// Fail if the target would be off the board
+				if (targetIndex.x < 0 || targetIndex.x >= dimensions.x || targetIndex.y < 0)
+				{
+					didMove = false;
+					break;
+				}
+
+				Tile target = tiles[targetIndex.x, targetIndex.y];
+
+				if (target.IsEmpty || oldTiles.Contains(target))
+				{
+					newTiles.Add(target);
+				}
+				else
+				{
+					didMove = false;
+					break;
+				}
+			}
+
+			if (didMove)
+			{
+				oldTiles = newTiles;
+				newTiles = new();
+			}
+		}
+
+		foreach (Tile t in ghostTiles) 
+		{
+			if (!currentTiles.Contains(t))
+			{
+				t.Clear();
+			}
+		}
+
+		for (int i = 0; i < oldTiles.Count; i++)
+		{
+			// Don't overwrite the actual piece
+			if (!currentTiles.Contains(oldTiles[i]))
+			{
+				oldTiles[i].CopyFrom(currentTiles[i], true);
+			}
+		}
+
+		ghostTiles = oldTiles;
 	}
 
 	public bool TryMoveDown()
@@ -275,6 +341,7 @@ public class GameBoard : Board
 		}
 
 		currentTiles = newTiles;
+		CreateGhost();
 		return true;
 	}
 	#endregion
@@ -367,6 +434,7 @@ public class GameBoard : Board
 		else
 		{
 			SpawnPiece(held);
+			CreateGhost();
 		}
 
 		holdSpent = true;

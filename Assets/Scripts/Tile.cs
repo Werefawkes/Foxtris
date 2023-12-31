@@ -13,6 +13,9 @@ public class Tile : MonoBehaviour
 	public Sprite emptySprite;
 	public bool IsEmpty { get; private set; }
 
+	[Header("Ghost")]
+	public float ghostColorMultiplier = 0.5f;
+
 	[Header("References")]
 	public SpriteRenderer spriteRenderer;
 
@@ -35,19 +38,26 @@ public class Tile : MonoBehaviour
 		spriteRenderer.color = emptyColor;
 	}
 
-	public void Fill(Color newColor)
+	public void Fill(Color newColor, bool ghost = false)
 	{
-		IsEmpty = false;
+		if (!ghost) IsEmpty = false;
 
 		if (sprite != null)
 		{
 			spriteRenderer.sprite = sprite;
 		}
+
+		if (ghost)
+		{
+			newColor *= ghostColorMultiplier;
+			newColor.a = 1;
+		}
+
 		spriteRenderer.color = newColor;
 		color = newColor;
 	}
 
-	public void CopyFrom(Tile tile)
+	public void CopyFrom(Tile tile, bool ghost = false)
 	{
 		if (tile.IsEmpty)
 		{
@@ -56,7 +66,7 @@ public class Tile : MonoBehaviour
 		else
 		{
 			color = tile.color;
-			Fill(color);
+			Fill(color, ghost);
 		}
 	}
 }
