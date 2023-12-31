@@ -2,10 +2,10 @@
 ## About
 
 ## Todo
-- Add piece ghost
+~~- Add piece ghost~~
 - Add sounds
 - Add music
-- Add piece holding
+~~- Add piece holding~~
 - Add scoring system
 - Add level system (game gets faster the higher your score)
 - Add about section to the README
