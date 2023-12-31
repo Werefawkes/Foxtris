@@ -123,6 +123,56 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &121191828
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 121191830}
+  - component: {fileID: 121191829}
+  m_Layer: 0
+  m_Name: HoldBoard
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &121191829
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 121191828}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86a8f73ad9f166e4493b5b60ecc404c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dimensions: {x: 5, y: 5}
+  buffer: 0
+  palette: {fileID: 11400000, guid: ca3e94e909ce78545aa1e393437dbe73, type: 2}
+  tilePrefab: {fileID: 6784293485470640221, guid: 68afe77b7ed695a478ce8e0f6e7c5170, type: 3}
+  currentTiles: []
+  board: {fileID: 1696188843}
+--- !u!4 &121191830
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 121191828}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -4, y: 3.75, z: 0}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -215,6 +265,56 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &996251439
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 996251441}
+  - component: {fileID: 996251440}
+  m_Layer: 0
+  m_Name: PreviewBoard
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &996251440
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 996251439}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86a8f73ad9f166e4493b5b60ecc404c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dimensions: {x: 5, y: 5}
+  buffer: 0
+  palette: {fileID: 11400000, guid: ca3e94e909ce78545aa1e393437dbe73, type: 2}
+  tilePrefab: {fileID: 6784293485470640221, guid: 68afe77b7ed695a478ce8e0f6e7c5170, type: 3}
+  currentTiles: []
+  board: {fileID: 1696188843}
+--- !u!4 &996251441
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 996251439}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 4, y: 3.75, z: 0}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!224 &1011805797 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8473406199884738288, guid: 16d9f07ab09f17b4b9ac72dc90a6efc4, type: 3}
@@ -232,7 +332,7 @@ GameObject:
   - component: {fileID: 1696188843}
   - component: {fileID: 1696188845}
   m_Layer: 0
-  m_Name: Board
+  m_Name: GameBoard
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -252,13 +352,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dimensions: {x: 10, y: 20}
   buffer: 2
+  palette: {fileID: 11400000, guid: ca3e94e909ce78545aa1e393437dbe73, type: 2}
+  tilePrefab: {fileID: 6784293485470640221, guid: 68afe77b7ed695a478ce8e0f6e7c5170, type: 3}
+  currentTiles: []
   ticksPerSecond: 1
   pieceSet: {fileID: 11400000, guid: d8266e5c3e68c2a4bb53acb5a7c56078, type: 2}
-  palette: {fileID: 11400000, guid: ca3e94e909ce78545aa1e393437dbe73, type: 2}
   moveRepeatTime: 0.05
   moveRepeatDelay: 0.3
   dropRepeatTime: 0.05
-  tilePrefab: {fileID: 6784293485470640221, guid: 68afe77b7ed695a478ce8e0f6e7c5170, type: 3}
+  holdBoard: {fileID: 121191829}
+  previewBoard: {fileID: 996251440}
 --- !u!4 &1696188844
 Transform:
   m_ObjectHideFlags: 0
@@ -584,3 +687,5 @@ SceneRoots:
   - {fileID: 519420032}
   - {fileID: 643744017152682790}
   - {fileID: 1696188844}
+  - {fileID: 121191830}
+  - {fileID: 996251441}

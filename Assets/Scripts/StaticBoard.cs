@@ -2,11 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PreviewBoard : Board
+public class StaticBoard : Board
 {
 	public GameBoard board;
-
-	public PieceSO CurrentPiece { get; private set; }
 
 	public override void Start()
 	{
@@ -15,11 +13,8 @@ public class PreviewBoard : Board
 
 	public void DisplayPiece(PieceSO piece)
 	{
+		ClearCurrentTiles();
 
-	}
-
-	public void Clear()
-	{
-		
+		SpawnPiece(piece, true);
 	}
 }

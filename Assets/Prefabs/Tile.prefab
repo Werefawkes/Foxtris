@@ -48,8 +48,8 @@ MonoBehaviour:
   index: {x: 0, y: 0}
   color: {r: 1, g: 0, b: 0, a: 1}
   sprite: {fileID: 21300000, guid: f55ae5d8688793f41826febb0995fd90, type: 3}
-  emptyColor: {r: 0, g: 0, b: 0, a: 1}
-  emptySprite: {fileID: 0}
+  emptyColor: {r: 0.2264151, g: 0.2264151, b: 0.2264151, a: 1}
+  emptySprite: {fileID: 21300000, guid: 0899c6f3ee3767540872d170c4f4146a, type: 3}
   spriteRenderer: {fileID: 3600233609320150151}
 --- !u!212 &3600233609320150151
 SpriteRenderer:

@@ -7,9 +7,16 @@ public class Board : MonoBehaviour
 	[Header("Board")]
 	public Vector2Int dimensions;
 	public int buffer = 2;
+	// TODO: Move current palette to player prefs
+	public PaletteSO palette;
+
 
 	public Tile[,] tiles;
 	public GameObject tilePrefab;
+
+	public List<Tile> currentTiles;
+
+	public PieceSO CurrentPiece { get; protected set; }
 
 	public virtual void Start()
 	{
@@ -33,9 +40,72 @@ public class Board : MonoBehaviour
 		}
 	}
 
-	// Update is called once per frame
-	void Update()
+	public bool SpawnPiece(PieceSO piece, bool centered = false)
 	{
-		
+		Vector2Int center = new(dimensions.x / 2, dimensions.y - 1);
+
+		if (centered)
+		{
+			center = dimensions / 2;
+		}
+
+		currentTiles = new();
+		foreach (Vector2Int p in piece.tiles)
+		{
+			Vector2Int tPos = center + p;
+			// Check in bounds
+			if (tPos.x < 0 || tPos.x >= dimensions.x || tPos.y < 0 || tPos.y >= dimensions.y + buffer)
+			{
+				Debug.LogWarning("Attempted to spawn piece off the board. Is setting a higher buffer needed?");
+				continue;
+			}
+
+			Tile tile = tiles[tPos.x, tPos.y];
+			if (tile.IsEmpty)
+			{
+				currentTiles.Add(tile);
+				tile.Fill(palette.colors[piece.colorIndex]);
+			}
+			else
+			{
+				currentTiles = new();
+				return false;
+			}
+		}
+
+		CurrentPiece = piece;
+		return true;
 	}
+
+	public void ClearCurrentTiles()
+	{
+		foreach (Tile t in currentTiles)
+		{
+			t.Clear();
+		}
+		currentTiles = new();
+		CurrentPiece = null;
+	}
+
+
+	public virtual void OnDrawGizmos()
+	{
+		Vector2 dim = (Vector2)dimensions / 2;
+		dim.x *= transform.localScale.x;
+		dim.y *= transform.localScale.y;
+		Vector3[] points = new Vector3[4]
+		{
+			new(-dim.x, -dim.y),
+			new(dim.x, -dim.y),
+			new(dim.x, dim.y),
+			new(-dim.x, dim.y)
+		};
+		for (int i = 0; i < points.Length; i++)
+		{
+			points[i] += transform.position;
+		}
+
+		Gizmos.DrawLineStrip(points, true);
+	}
+
 }

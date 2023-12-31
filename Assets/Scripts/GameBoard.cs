@@ -9,10 +9,8 @@ public class GameBoard : Board
 	[Header("Game")]
 	public float ticksPerSecond = 1;
 	public PieceSetSO pieceSet;
-	public PaletteSO palette;
 	float nextTickTime;
-
-	List<Tile> currentTiles;
+	bool holdSpent = false;
 
 	[Header("Input"), Tooltip("The time in seconds it takes to repeat the move while holding the button down.")]
 	public float moveRepeatTime = 0.1f;
@@ -23,11 +21,19 @@ public class GameBoard : Board
 	float nextDropTime = -1;
 	float moveInput;
 
+	readonly List<PieceSO> pieceBag = new();
+
+	List<Tile> ghostTiles = new();
+
+	public StaticBoard holdBoard;
+	public StaticBoard previewBoard;
+
 	public override void Start()
 	{
 		base.Start();
 
-		SpawnPiece();
+		SpawnPiece(GetNextPiece());
+		previewBoard.DisplayPiece(GetNextPiece());
 	}
 
 	void Update()
@@ -77,41 +83,43 @@ public class GameBoard : Board
 		// Fall
 		if (!TryMoveDown())
 		{
+			// Piece lands
 			currentTiles = new();
+			ghostTiles = new();
 			CheckLines();
-			SpawnPiece();
+			TrySpawnNext();
+			holdSpent = false;
 		}
 	}
 
-	public void SpawnPiece()
+	bool TrySpawnNext()
 	{
-		PieceSO piece = GetNextPiece();
-
-		Vector2Int center = new(dimensions.x / 2, dimensions.y - 1);
-
-		currentTiles = new();
-		foreach (Vector2Int p in piece.tiles)
+		if (!SpawnPiece(previewBoard.CurrentPiece))
 		{
-			Vector2Int tPos = center + p;
-			Tile tile = tiles[tPos.x, tPos.y];
-			if (tile.IsEmpty)
-			{
-				currentTiles.Add(tile);
-				tile.Fill(palette.colors[piece.colorIndex]);
-			}
-			else
-			{
-				// Game over
-				Debug.Log("Game over");
-				currentTiles = new();
-				return;
-			}
+			// Game over
+			Debug.Log("Game over");
+			return false;
+		}
+		else
+		{
+			previewBoard.DisplayPiece(GetNextPiece());
+			CreateGhost();
+			return true;
 		}
 	}
 
 	public PieceSO GetNextPiece()
 	{
-		return pieceSet.pieces[Random.Range(0, pieceSet.pieces.Count)];
+		// 7 bag
+		if (pieceBag.Count == 0)
+		{
+			pieceBag.AddRange(pieceSet.pieces);
+		}
+		// Draw a random piece
+		PieceSO next = pieceBag[Random.Range(0, pieceBag.Count)];
+		pieceBag.Remove(next);
+
+		return next;
 	}
 
 
@@ -199,7 +207,69 @@ public class GameBoard : Board
 		}
 
 		currentTiles = newTiles;
+		CreateGhost();
 		return true;
+	}
+
+	public void CreateGhost()
+	{
+		if (currentTiles == null || currentTiles.Count == 0) return;
+
+		List<Tile> oldTiles = new(currentTiles);
+		List<Tile> newTiles = new();
+		bool didMove = true;
+		while (didMove)
+		{
+			foreach (Tile tile in oldTiles)
+			{
+				Vector2Int targetIndex = tile.index;
+				targetIndex += Vector2Int.down;
+
+				// Fail if the target would be off the board
+				if (targetIndex.x < 0 || targetIndex.x >= dimensions.x || targetIndex.y < 0)
+				{
+					didMove = false;
+					break;
+				}
+
+				Tile target = tiles[targetIndex.x, targetIndex.y];
+
+				if (target.IsEmpty || oldTiles.Contains(target))
+				{
+					newTiles.Add(target);
+				}
+				else
+				{
+					didMove = false;
+					break;
+				}
+			}
+
+			if (didMove)
+			{
+				oldTiles = newTiles;
+				newTiles = new();
+			}
+		}
+
+		foreach (Tile t in ghostTiles) 
+		{
+			if (!currentTiles.Contains(t))
+			{
+				t.Clear();
+			}
+		}
+
+		for (int i = 0; i < oldTiles.Count; i++)
+		{
+			// Don't overwrite the actual piece
+			if (!currentTiles.Contains(oldTiles[i]))
+			{
+				oldTiles[i].CopyFrom(currentTiles[i], true);
+			}
+		}
+
+		ghostTiles = oldTiles;
 	}
 
 	public bool TryMoveDown()
@@ -271,6 +341,7 @@ public class GameBoard : Board
 		}
 
 		currentTiles = newTiles;
+		CreateGhost();
 		return true;
 	}
 	#endregion
@@ -348,6 +419,27 @@ public class GameBoard : Board
 		nextTickTime = Time.time;
 	}
 
+	void OnHold()
+	{
+		if (holdSpent) return;
+
+		PieceSO held = holdBoard.CurrentPiece;
+		holdBoard.DisplayPiece(CurrentPiece);
+		ClearCurrentTiles();
+
+		if (held == null)
+		{
+			TrySpawnNext();
+		}
+		else
+		{
+			SpawnPiece(held);
+			CreateGhost();
+		}
+
+		holdSpent = true;
+	}
+
 	void OnPause()
 	{
 		if (UIManager.IsUIClear)
@@ -361,19 +453,9 @@ public class GameBoard : Board
 	}
 	#endregion
 
-	private void OnDrawGizmos()
+	public override void OnDrawGizmos()
 	{
-		Vector2 dim = dimensions / 2;
-		dim.x *= transform.localScale.x;
-		dim.y *= transform.localScale.y;
-		Vector3[] points = new Vector3[4]
-		{
-			new(-dim.x, -dim.y),
-			new(dim.x, -dim.y),
-			new(dim.x, dim.y),
-			new(-dim.x, dim.y)
-		};
-		Gizmos.DrawLineStrip(points, true);
+		base.OnDrawGizmos();
 
 		if (currentTiles == null) return;
 		Vector2 center = Vector2.zero;
@@ -394,5 +476,6 @@ public class GameBoard : Board
 		Vector2 ci = new(centerInt.x - dimensions.x / 2, centerInt.y - dimensions.y / 2);
 		ci += offset;
 		Gizmos.DrawSphere(ci * transform.localScale, 0.5f * transform.localScale.x);
+
 	}
 }
