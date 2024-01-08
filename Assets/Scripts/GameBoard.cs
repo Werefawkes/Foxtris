@@ -14,6 +14,8 @@ public class GameBoard : Board
 
 	[Header("Scoring")]
 	public int linesPerLevel = 10;
+	public int scorePerSoftDrop = 1;
+	public int scorePerHardDrop = 2;
 
 	int level = 1;
 	int score = 0;
@@ -82,10 +84,14 @@ public class GameBoard : Board
 		// Soft drops
 		if (nextDropTime > 0 && Time.time >= nextDropTime)
 		{
-			TryMoveDown();
 			nextDropTime = Time.time + dropRepeatTime;
-			// Postpone next tick
-			nextTickTime = Time.time + (1 / ticksPerSecond);
+
+			if (TryMoveDown())
+			{
+				// Postpone next tick
+				nextTickTime = Time.time + (1 / ticksPerSecond);
+				score += scorePerSoftDrop;
+			}
 		}
 
 		// Score display
@@ -213,6 +219,7 @@ public class GameBoard : Board
 		score += lineMultiplier * level;
 		linesClearedTotal += linesClearedThisTick;
 		level = (linesClearedTotal / linesPerLevel) + 1;
+		ticksPerSecond = level;
 	}
 	#endregion
 
@@ -460,6 +467,7 @@ public class GameBoard : Board
 		do
 		{
 			moved = TryMoveDown();
+			if (moved) score += scorePerHardDrop;
 		} 
 		while (moved);
 
