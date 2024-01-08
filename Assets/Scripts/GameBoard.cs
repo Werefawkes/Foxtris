@@ -12,6 +12,15 @@ public class GameBoard : Board
 	float nextTickTime;
 	bool holdSpent = false;
 
+	[Header("Scoring")]
+	public int linesPerLevel = 10;
+
+	int level = 1;
+	int score = 0;
+	int linesClearedTotal = 0;
+	int linesClearedThisTick = 0;
+
+
 	[Header("Input"), Tooltip("The time in seconds it takes to repeat the move while holding the button down.")]
 	public float moveRepeatTime = 0.1f;
 	[Tooltip("The time in seconds it takes to begin repeating the move when holding the button down.")]
@@ -25,8 +34,10 @@ public class GameBoard : Board
 
 	List<Tile> ghostTiles = new();
 
+	[Header("References")]
 	public StaticBoard holdBoard;
 	public StaticBoard previewBoard;
+	public TMPro.TMP_Text text;
 
 	public override void Start()
 	{
@@ -76,6 +87,10 @@ public class GameBoard : Board
 			// Postpone next tick
 			nextTickTime = Time.time + (1 / ticksPerSecond);
 		}
+
+		// Score display
+		string newText = $"Score\n{score}\nLevel\n{level}\nLines\n{linesClearedTotal}";
+		text.text = newText;
 	}
 
 	void Tick()
@@ -83,15 +98,19 @@ public class GameBoard : Board
 		// Fall
 		if (!TryMoveDown())
 		{
+			linesClearedThisTick = 0;
+
 			// Piece lands
 			currentTiles = new();
 			ghostTiles = new();
 			CheckLines();
+			ScoreLines();
 			TrySpawnNext();
 			holdSpent = false;
 		}
 	}
 
+	#region Piece Spawning
 	bool TrySpawnNext()
 	{
 		if (!SpawnPiece(previewBoard.CurrentPiece))
@@ -121,30 +140,9 @@ public class GameBoard : Board
 
 		return next;
 	}
-
+	#endregion
 
 	#region Line Checking
-	public void ClearLine(int rowIndex)
-	{
-		for (int x = 0; x < dimensions.x; x++)
-		{
-			// If there's a tile above
-			if (rowIndex + 1 < dimensions.y)
-			{
-				tiles[x, rowIndex].CopyFrom(tiles[x, rowIndex + 1]);
-			}
-			else
-			{
-				tiles[x, rowIndex].Clear();
-			}
-		}
-
-		if (rowIndex + 1 < dimensions.y)
-		{
-			ClearLine(rowIndex + 1);
-		}
-	}
-
 	public void CheckLines()
 	{
 		// Check from the top down
@@ -163,8 +161,58 @@ public class GameBoard : Board
 			if (full)
 			{
 				ClearLine(y);
+				linesClearedThisTick++;
 			}
 		}
+	}
+
+	public void ClearLine(int rowIndex)
+	{
+		for (int x = 0; x < dimensions.x; x++)
+		{
+			// If there's a tile above
+			if (rowIndex + 1 < dimensions.y)
+			{
+				tiles[x, rowIndex].CopyFrom(tiles[x, rowIndex + 1]);
+			}
+			else
+			{
+				tiles[x, rowIndex].Clear();
+			}
+		}
+
+		// Iterate upwards to shift the entire board down
+		if (rowIndex + 1 < dimensions.y)
+		{
+			ClearLine(rowIndex + 1);
+		}
+	}
+	#endregion
+
+	#region Scoring
+	public void ScoreLines()
+	{
+		int lineMultiplier = 0;
+		if (linesClearedThisTick == 1)
+		{
+			lineMultiplier = 100;
+		}
+		else if (linesClearedThisTick == 2)
+		{
+			lineMultiplier = 300;
+		}
+		else if (linesClearedThisTick == 3)
+		{
+			lineMultiplier = 500;
+		}
+		else if (linesClearedThisTick == 4)
+		{
+			lineMultiplier = 800;
+		}
+
+		score += lineMultiplier * level;
+		linesClearedTotal += linesClearedThisTick;
+		level = (linesClearedTotal / linesPerLevel) + 1;
 	}
 	#endregion
 
